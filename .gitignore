@@ -1,1 +1,13 @@
 node_modules
+package-lock.json
+
+# Terraform
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/function.zip
+
+# Lambda deployment
+function.zip
+*.zip
