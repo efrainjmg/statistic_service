@@ -11,6 +11,15 @@ terraform {
       version = "~> 2.0"
     }
   }
+
+  # Remote state backend - prevents "resource already exists" errors in CI/CD
+  backend "s3" {
+    bucket         = "statistic-service-terraform-state"
+    key            = "terraform.tfstate"
+    region         = "us-east-1"
+    encrypt        = true
+    dynamodb_table = "terraform-state-lock"
+  }
 }
 
 provider "aws" {
