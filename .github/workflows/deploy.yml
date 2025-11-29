@@ -49,6 +49,39 @@ jobs:
         working-directory: ./terraform
         run: terraform validate
 
+      - name: Import Existing Resources
+        working-directory: ./terraform
+        continue-on-error: true
+        run: |
+          # Get AWS account ID
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          
+          # Import IAM Role if it exists
+          terraform import -var="aws_region=${{ env.AWS_REGION }}" \
+            -var="table_name=${{ env.DYNAMODB_TABLE_NAME }}" \
+            -var="lambda_function_name=${{ env.LAMBDA_FUNCTION_NAME }}" \
+            aws_iam_role.lambda_role ${{ env.LAMBDA_FUNCTION_NAME }}-role || true
+          
+          # Import IAM Policy if it exists
+          terraform import -var="aws_region=${{ env.AWS_REGION }}" \
+            -var="table_name=${{ env.DYNAMODB_TABLE_NAME }}" \
+            -var="lambda_function_name=${{ env.LAMBDA_FUNCTION_NAME }}" \
+            aws_iam_policy.dynamodb_policy arn:aws:iam::${ACCOUNT_ID}:policy/${{ env.LAMBDA_FUNCTION_NAME }}-dynamodb-policy || true
+          
+          # Import Lambda CloudWatch Log Group if it exists
+          terraform import -var="aws_region=${{ env.AWS_REGION }}" \
+            -var="table_name=${{ env.DYNAMODB_TABLE_NAME }}" \
+            -var="lambda_function_name=${{ env.LAMBDA_FUNCTION_NAME }}" \
+            aws_cloudwatch_log_group.lambda_logs /aws/lambda/${{ env.LAMBDA_FUNCTION_NAME }} || true
+          
+          # Import API Gateway CloudWatch Log Group if it exists
+          terraform import -var="aws_region=${{ env.AWS_REGION }}" \
+            -var="table_name=${{ env.DYNAMODB_TABLE_NAME }}" \
+            -var="lambda_function_name=${{ env.LAMBDA_FUNCTION_NAME }}" \
+            aws_cloudwatch_log_group.api_logs /aws/apigateway/${{ env.LAMBDA_FUNCTION_NAME }} || true
+          
+          echo "Import step completed (errors ignored if resources already in state)"
+
       - name: Terraform Plan
         working-directory: ./terraform
         run: |
