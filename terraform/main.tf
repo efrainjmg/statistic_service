@@ -24,29 +24,6 @@ data "archive_file" "lambda_zip" {
   output_path = "${path.module}/function.zip"
 }
 
-# IAM Role for Lambda
-resource "aws_iam_role" "lambda_role" {
-  name = "${var.lambda_function_name}-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "lambda.amazonaws.com"
-        }
-      }
-    ]
-  })
-
-  tags = {
-    Name        = "${var.lambda_function_name}-role"
-    Environment = var.environment
-  }
-}
-
 # IAM Policy for DynamoDB access
 resource "aws_iam_policy" "dynamodb_policy" {
   name        = "${var.lambda_function_name}-dynamodb-policy"
@@ -65,12 +42,6 @@ resource "aws_iam_policy" "dynamodb_policy" {
       }
     ]
   })
-}
-
-# Attach DynamoDB policy to Lambda role
-resource "aws_iam_role_policy_attachment" "lambda_dynamodb" {
-  role       = aws_iam_role.lambda_role.name
-  policy_arn = aws_iam_policy.dynamodb_policy.arn
 }
 
 # Attach basic Lambda execution policy
@@ -98,17 +69,6 @@ resource "aws_lambda_function" "stats_function" {
 
   tags = {
     Name        = var.lambda_function_name
-    Environment = var.environment
-  }
-}
-
-# CloudWatch Log Group
-resource "aws_cloudwatch_log_group" "lambda_logs" {
-  name              = "/aws/lambda/${var.lambda_function_name}"
-  retention_in_days = 7
-
-  tags = {
-    Name        = "${var.lambda_function_name}-logs"
     Environment = var.environment
   }
 }
@@ -169,17 +129,6 @@ resource "aws_apigatewayv2_stage" "default_stage" {
 
   tags = {
     Name        = "${var.lambda_function_name}-stage"
-    Environment = var.environment
-  }
-}
-
-# CloudWatch Log Group for API Gateway
-resource "aws_cloudwatch_log_group" "api_logs" {
-  name              = "/aws/apigateway/${var.lambda_function_name}"
-  retention_in_days = 7
-
-  tags = {
-    Name        = "${var.lambda_function_name}-api-logs"
     Environment = var.environment
   }
 }
