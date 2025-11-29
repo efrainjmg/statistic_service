@@ -93,7 +93,6 @@ resource "aws_lambda_function" "stats_function" {
   environment {
     variables = {
       TABLE_NAME = var.table_name
-      AWS_REGION = var.aws_region
     }
   }
 

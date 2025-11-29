@@ -2,8 +2,9 @@ const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, GetCommand } = require("@aws-sdk/lib-dynamodb");
 
 // Create DynamoDB client
+// AWS Lambda automatically provides AWS_REGION environment variable
 const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || "us-east-1"
+  region: process.env.AWS_REGION
 });
 
 // Create Document client for easier data handling
@@ -27,7 +28,7 @@ async function getStatsByCodigo(codigo) {
     });
 
     const response = await docClient.send(command);
-    
+
     // Return the item or null if not found
     return response.Item || null;
   } catch (error) {
